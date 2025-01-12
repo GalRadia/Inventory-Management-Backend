@@ -1,6 +1,6 @@
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 
-
+from api.auth import token_required
 from models.item import Item
 from flask import Blueprint, request, jsonify
 
@@ -24,18 +24,19 @@ def get_item_by_id(item_id):
     return jsonify({'message': 'Item not found'}), 404
 
 
-@inventory_bp.route('/items/<item_name>', methods=['GET'])
-def get_item_by_name(item_name):
-    item = Item.objects(name=item_name).first()
-    if item:
-        return jsonify(item.to_json()), 200
-    return jsonify({'message': 'Item not found'}), 404
+# @inventory_bp.route('/items/<item_name>', methods=['GET'])
+# def get_item_by_name(item_name):
+#     item = Item.objects(name=item_name).first()
+#     if item:
+#         return jsonify(item.to_json()), 200
+#     return jsonify({'message': 'Item not found'}), 404
 
 @inventory_bp.route('/search', methods=['GET'])
 def search():
     name = request.args.get('name')
     items = Item.objects(name__icontains=name)
     return jsonify([item.to_json() for item in items]), 200
+
 
 @inventory_bp.route('/insert_item', methods=['POST'])
 def insert_item():
@@ -51,35 +52,17 @@ def insert_item():
     return jsonify({'message': 'Item inserted successfully', 'item_id': str(item.id)}), 201
 
 
-@inventory_bp.route('/update_item/<item_name>', methods=['PUT'])
-def update_item(item_name):
+@inventory_bp.route('/update_item/<item_id>', methods=['PUT'])
+def update_item(item_id):
     data = request.get_json()
-    item = Item.objects(id=item_name).first()  # Find item by NAME
-
+    item = Item.objects(id=item_id).first()  # Find item by id
     if item:
-        # Create a dictionary for updates, only including provided keys
-        update_fields = {}
-        if 'name' in data:
-            update_fields['set__name'] = data['name']
-        if 'price' in data:
-            update_fields['set__price'] = data['price']
-        if 'quantity' in data:
-            update_fields['set__quantity'] = data['quantity']
-        if 'description' in data:
-            update_fields['set__description'] = data['description']
+        item.update(**data)
 
-        # Apply updates only if there are fields to update
-        if update_fields:
-            item.update(**update_fields)
-            return jsonify({'message': 'Item updated successfully'}), 200
-        else:
-            return jsonify({'message': 'No fields to update'}), 400
 
-    return jsonify({'message': 'Item not found'}), 404
-
-@inventory_bp.route('/remove/<item_name>', methods=['DELETE'])
-def remove_item(item_name):
-    item = Item.objects(id=item_name).first()  # Find item by NAME
+@inventory_bp.route('/remove/<item_id>', methods=['DELETE'])
+def remove_item(item_id):
+    item = Item.objects(id=item_id).first()  # Find item by id
     if item:
         item.delete()  # Delete the item from the database
         return jsonify({'message': 'Item deleted successfully'}), 200
@@ -87,15 +70,21 @@ def remove_item(item_name):
 
 
 @transaction_bp.route('/purchase', methods=['POST'])
-def purchase():
+@token_required(pass_user=True)
+def purchase(current_user):
     data = request.get_json()
-    item_name = data.get('name')
+    item_id = data.get('id')
     purchase_quantity = data.get('quantity')
-
-    return create_transaction(item_name, purchase_quantity)
-
+    user_name = current_user.username
+    return create_transaction(user_name,item_id, purchase_quantity)
+@transaction_bp.route('/transactions', methods=['GET'])
+@token_required(pass_user=False)
+def get_transactions():
+    transactions = Transaction.objects()
+    return jsonify([transaction.to_json() for transaction in transactions]), 200
 
 @transaction_bp.route('/trending', methods=['GET'])
+@token_required(pass_user=False)
 def get_trending_items():
     # Define the time range for "trending" (last 7 days)
     data = request.get_json()
@@ -117,7 +106,7 @@ def get_trending_items():
     results = []
     for item in trending_items:
         # Fetch item details
-        item_details = Transaction.objects(id=item["_id"]).first()
+        item_details = Item.objects(id=item["_id"]).first()
         if item_details:
             results.append({
                 "item_id": str(item_details.id),
@@ -129,9 +118,9 @@ def get_trending_items():
     return jsonify({"trending_items": results}), 200
 
 
-def create_transaction(item_name, purchase_quantity):
+def create_transaction(user_name,item_id, purchase_quantity):
     # Find the item in the database
-    item = Item.objects(name=item_name).first()
+    item = Item.objects(id=item_id).first()
     if not item:
         return jsonify({'message': 'Item not found'}), 404
 
@@ -144,7 +133,7 @@ def create_transaction(item_name, purchase_quantity):
     item.save()
 
     # Create a new transaction record
-    transaction = Transaction(item=item, quantity=purchase_quantity, price=item.price)
+    transaction = Transaction(item=item, quantity=purchase_quantity, price=item.price, buyer=user_name)
     transaction.save()
 
     return jsonify({'message': 'Transaction completed successfully', 'transaction_id': str(transaction.id)}), 201

@@ -9,4 +9,12 @@ class Item(Document):
 
     def __str__(self):
         return f"{self.name} - {self.quantity} items available at ${self.price} each"
+    def to_json(self):
+        return {
+            'name': self.name,
+            'price': self.price,
+            'quantity': self.quantity,
+            'description': self.description
+        }
+
 
