@@ -76,15 +76,25 @@ def purchase(current_user):
     item_id = data.get('id')
     purchase_quantity = data.get('quantity')
     user_name = current_user.username
-    return create_transaction(user_name,item_id, purchase_quantity)
+    return create_transaction(user_name, item_id, purchase_quantity)
+
+
 @transaction_bp.route('/transactions', methods=['GET'])
-@token_required(pass_user=False)
+@token_required(pass_user=False, should_be_manager=True)
 def get_transactions():
     transactions = Transaction.objects()
     return jsonify([transaction.to_json() for transaction in transactions]), 200
 
+
+@transaction_bp.route('/transactions/<user_name>', methods=['GET'])
+@token_required(pass_user=True)
+def get_transactions_by_user(current_user):
+    transactions = Transaction.objects(buyer=current_user.username)
+    return jsonify([transaction.to_json() for transaction in transactions]), 200
+
+
 @transaction_bp.route('/trending', methods=['GET'])
-@token_required(pass_user=False)
+@token_required(pass_user=False, should_be_manager=True)
 def get_trending_items():
     # Define the time range for "trending" (last 7 days)
     data = request.get_json()
@@ -118,7 +128,7 @@ def get_trending_items():
     return jsonify({"trending_items": results}), 200
 
 
-def create_transaction(user_name,item_id, purchase_quantity):
+def create_transaction(user_name, item_id, purchase_quantity):
     # Find the item in the database
     item = Item.objects(id=item_id).first()
     if not item:

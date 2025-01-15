@@ -11,7 +11,10 @@ class Transaction(Document):
     price = FloatField(required=True, min_value=0)
     timestamp = DateTimeField(default=datetime.utcnow())
     buyer =StringField(required=True)
-
+    # Specify the collection name
+    meta = {
+        'collection': 'Transactions'  # Replace with your desired collection name
+    }
     def to_json(self):
         return {
             'item': self.item.to_json(),

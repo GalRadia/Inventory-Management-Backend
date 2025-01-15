@@ -1,19 +1,21 @@
+import jwt
+
 from api.auth import auth_bp
 from api.inventory import inventory_bp, transaction_bp
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, before_render_template, request, jsonify
 from flask_mongoengine import MongoEngine
 
 from config import Config
-
+from models.user import User
 
 load_dotenv()
 
 # Initialize the MongoEngine extension
 db = MongoEngine()
+app = Flask(__name__)
 
 def create_app():
-    app = Flask(__name__)
 
     # MongoDB configuration
     app.config.from_object(Config)
@@ -27,3 +29,33 @@ def create_app():
     app.register_blueprint(transaction_bp, url_prefix='/transaction')
 
     return app
+@app.before_request
+def require_token_globally():
+    exempt_routes = [
+        "/auth/login",
+        "/auth/register",
+        "/auth/refresh-token"  # Add any routes that do not require token
+    ]
+    if request.path in exempt_routes:
+        return  # Skip token validation for exempt routes
+
+    token = None
+    if 'Authorization' in request.headers:
+        auth_header = request.headers['Authorization']
+        if auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
+    if not token:
+        return jsonify({'message': 'Token is missing or improperly formatted!'}), 403
+
+    try:
+        data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+        current_user = User.objects(username=data['username']).first()
+        if not current_user:
+            return jsonify({'message': 'User does not exist!'}), 404
+        # Store current_user in request context for later use
+        request.current_user = current_user
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired!'}), 403
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Token is invalid!'}), 403
