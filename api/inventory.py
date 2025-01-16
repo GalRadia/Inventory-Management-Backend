@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 
-from api.auth import token_required
+import jwt
+
+from api.auth import SECRET_KEY, manager_required
 from models.item import Item
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, app
 
 from models.transaction import Transaction
 
@@ -39,6 +41,7 @@ def search():
 
 
 @inventory_bp.route('/insert_item', methods=['POST'])
+@manager_required
 def insert_item():
     data = request.get_json()
     item = Item(
@@ -46,7 +49,6 @@ def insert_item():
         price=data.get('price'),
         quantity=data.get('quantity'),
         description=data.get('description')
-
     )
     item.save()  # Save the item to the MongoDB database
     return jsonify({'message': 'Item inserted successfully', 'item_id': str(item.id)}), 201
@@ -70,7 +72,6 @@ def remove_item(item_id):
 
 
 @transaction_bp.route('/purchase', methods=['POST'])
-@token_required(pass_user=True)
 def purchase(current_user):
     data = request.get_json()
     item_id = data.get('id')
@@ -80,21 +81,18 @@ def purchase(current_user):
 
 
 @transaction_bp.route('/transactions', methods=['GET'])
-@token_required(pass_user=False, should_be_manager=True)
 def get_transactions():
     transactions = Transaction.objects()
     return jsonify([transaction.to_json() for transaction in transactions]), 200
 
 
 @transaction_bp.route('/transactions/<user_name>', methods=['GET'])
-@token_required(pass_user=True)
 def get_transactions_by_user(current_user):
     transactions = Transaction.objects(buyer=current_user.username)
     return jsonify([transaction.to_json() for transaction in transactions]), 200
 
 
 @transaction_bp.route('/trending', methods=['GET'])
-@token_required(pass_user=False, should_be_manager=True)
 def get_trending_items():
     # Define the time range for "trending" (last 7 days)
     data = request.get_json()
