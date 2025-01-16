@@ -1,18 +1,13 @@
-from mongoengine import Document, StringField, IntField,FloatField
+import uuid
 
-class Item(Document):
-    name = StringField(required=True, unique=True)
-    price = FloatField(required=True,min_value=0)
-    quantity = IntField(required=True)
-    description = StringField()
-    # Specify the collection name
-    meta = {
-        'collection': 'Items'  # Replace with your desired collection name
-    }
+class Item:
+    def __init__(self,name, price, quantity, description=None):
+        self.name = name
+        self.price = price
+        self.quantity = quantity
+        self.description = description
 
-    def __str__(self):
-        return f"{self.name} - {self.quantity} items available at ${self.price} each"
-    def to_json(self):
+    def to_dict(self):
         return {
             'name': self.name,
             'price': self.price,
@@ -20,4 +15,15 @@ class Item(Document):
             'description': self.description
         }
 
+    def __str__(self):
+        return f"{self.name} - {self.quantity} items available at ${self.price} each"
 
+    # Static method for creating an Item from MongoDB document
+    @staticmethod
+    def from_dict(data):
+        return Item(
+            name=data.get('name'),
+            price=data.get('price'),
+            quantity=data.get('quantity'),
+            description=data.get('description')
+        )
