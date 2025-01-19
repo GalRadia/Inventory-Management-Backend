@@ -83,10 +83,5 @@ def register():
 
     return jsonify({'message': 'User registered successfully'}), 201
 
-# No need to include this in serverless environments like Vercel
-# if __name__ == '__main__':
-#     app.run()
-
-# Add app to be used by Vercel
-def handler(event, context):
-    return app.wsgi_app
+if __name__ == '__main__':
+    app.run(debug=True)
