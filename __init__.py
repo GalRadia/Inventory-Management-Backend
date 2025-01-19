@@ -3,7 +3,7 @@ import jwt
 from api.auth import auth_bp
 from api.inventory import inventory_bp, transaction_bp
 from dotenv import load_dotenv
-from flask import Flask, before_render_template, request, jsonify
+from flask import Flask, request, jsonify
 from flask_mongoengine import MongoEngine
 
 from config import Config
@@ -59,3 +59,6 @@ def create_app():
             return jsonify({'message': 'Token is invalid!'}), 403
 
     return app
+if __name__ == '__main__':
+    app = create_app()
+    app.run()

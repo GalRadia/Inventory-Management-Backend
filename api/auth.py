@@ -39,7 +39,6 @@ def login():
         return jsonify({'token': token}), 200
     return jsonify({'message': 'Invalid credentials'}), 401
 
-
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
