@@ -25,7 +25,9 @@ db.init_app(app)
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(inventory_bp, url_prefix='/inventory')
 app.register_blueprint(transaction_bp, url_prefix='/transaction')
-
+@app.route('/')
+def home():
+    return jsonify({'message': 'Welcome to the Inventory Management System!'})
 @app.before_request
 def require_token():
     exempt_routes = [
