@@ -1,4 +1,6 @@
 import jwt
+from werkzeug.security import generate_password_hash
+
 from api.auth import auth_bp
 from api.inventory import inventory_bp, transaction_bp
 from dotenv import load_dotenv
@@ -59,6 +61,24 @@ def require_token():
         return jsonify({'message': 'Token has expired!'}), 403
     except jwt.InvalidTokenError:
         return jsonify({'message': 'Token is invalid!'}), 403
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+
+    username = data.get('username')
+    password = data.get('password')
+    role = data.get('role')
+    # Check if user already exists in the database
+    if User.objects(username=username).first():
+        return jsonify({'message': 'User already exists'}), 400
+
+    # Hash the password and save the user to the database
+    hashed_password = generate_password_hash(password)
+    user = User(username=username, password=hashed_password, role=role)
+    user.save()
+
+    return jsonify({'message': 'User registered successfully'}), 201
 
 # Add the app object so Vercel can use it
 if __name__ == '__main__':
