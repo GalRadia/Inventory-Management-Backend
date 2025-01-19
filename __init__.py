@@ -88,5 +88,5 @@ def register():
 #     app.run()
 
 # Add app to be used by Vercel
-def handler(request):
-    return app(request)
+def handler(event, context):
+    return app(event, context)
