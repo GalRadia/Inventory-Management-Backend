@@ -89,4 +89,4 @@ def register():
 
 # Add app to be used by Vercel
 def handler(event, context):
-    return app(event, context)
+    return app.wsgi_app
