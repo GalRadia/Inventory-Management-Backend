@@ -1,3 +1,5 @@
+import os
+
 import jwt
 from werkzeug.security import generate_password_hash
 
@@ -30,7 +32,7 @@ app.register_blueprint(transaction_bp, url_prefix='/transaction')
 
 @app.route('/')
 def home():
-    return jsonify({'message': 'Welcome to the Inventory Management System!'})
+    return jsonify({'message': 'Welcome to the Inventory Management System!','db':os.getenv('MONGO_URI')})
 
 @app.before_request
 def require_token():
