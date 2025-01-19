@@ -27,9 +27,11 @@ db.init_app(app)
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(inventory_bp, url_prefix='/inventory')
 app.register_blueprint(transaction_bp, url_prefix='/transaction')
+
 @app.route('/')
 def home():
     return jsonify({'message': 'Welcome to the Inventory Management System!'})
+
 @app.before_request
 def require_token():
     exempt_routes = [
@@ -81,7 +83,10 @@ def register():
 
     return jsonify({'message': 'User registered successfully'}), 201
 
-# Add the app object so Vercel can use it
-if __name__ == '__main__':
-    app.run()
+# No need to include this in serverless environments like Vercel
+# if __name__ == '__main__':
+#     app.run()
 
+# Add app to be used by Vercel
+def handler(request):
+    return app(request)
