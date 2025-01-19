@@ -33,7 +33,8 @@ def require_token():
     exempt_routes = [
         "/auth/login",
         "/auth/register",
-        "/auth/refresh-token"  # Add any routes that do not require token
+        "/auth/refresh-token",  # Add any routes that do not require token
+        "/"
     ]
     if request.path in exempt_routes:
         return  # Skip token validation for exempt routes
