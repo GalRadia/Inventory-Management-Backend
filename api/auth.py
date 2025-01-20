@@ -15,7 +15,7 @@ load_dotenv()
 auth_bp = Blueprint('auth', __name__)
 
 # Secret key for JWT
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 
 @auth_bp.route('/login', methods=['GET'])
