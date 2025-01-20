@@ -10,8 +10,8 @@ class ItemDAO:
         result = self.collection.insert_one(item_dict)
         return result.inserted_id
 
-    def get_by_name(self, name: str):
-        item_data = self.collection.find_one({"name": name})
+    def get_by_id(self, item_id):
+        item_data = self.collection.find_one({"_id": item_id})
         if item_data:
             return Item.from_dict(item_data)
         return None
@@ -28,11 +28,6 @@ class ItemDAO:
     def get_all_items(self):
         items = self.collection.find()
         return [Item.from_dict(item) for item in items]
-
-    def get_item_by_id(self, item_id):
-        item = self.collection.find_one({"_id": item_id})
-        if item:
-            return Item.from_dict(item)
 
     def search_items_by_name(self, name):
         items = self.collection.find({"name": {"$regex": name, "$options": "i"}})

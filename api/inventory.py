@@ -22,7 +22,7 @@ def get_items():
 
 @inventory_bp.route('/items/<item_id>', methods=['GET'])
 def get_item_by_id(item_id):
-    item = item_dao.get_item_by_id(item_id)  # Use DAO to find item by ID
+    item = item_dao.get_by_id(item_id)  # Use DAO to find item by ID
     if item:
         return jsonify(item.to_json()), 200
     return jsonify({'message': 'Item not found'}), 404
@@ -50,7 +50,7 @@ def insert_item():
 @manager_required
 def update_item(item_id):
     data = request.get_json()
-    item = item_dao.get_item_by_id(item_id)  # Use DAO to find item
+    item = item_dao.get_by_id(item_id)  # Use DAO to find item
     if item:
         item_dao.update_item(item_id, data)  # Use DAO to update item
         return jsonify({'message': 'Item updated successfully'}), 200
@@ -59,7 +59,7 @@ def update_item(item_id):
 @inventory_bp.route('/remove/<item_id>', methods=['DELETE'])
 @manager_required
 def remove_item(item_id):
-    item = item_dao.get_item_by_id(item_id)  # Use DAO to find item
+    item = item_dao.get_by_id(item_id)  # Use DAO to find item
     if item:
         item_dao.remove_item(item_id)  # Use DAO to remove item
         return jsonify({'message': 'Item deleted successfully'}), 200
@@ -98,7 +98,7 @@ def get_trending_items():
 
     results = []
     for item in trending_items:
-        item_details = item_dao.get_item_by_id(item["_id"])  # Use DAO to find item details
+        item_details = item_dao.get_by_id(item["_id"])  # Use DAO to find item details
         if item_details:
             results.append({
                 "item_id": str(item_details.id),
@@ -110,7 +110,7 @@ def get_trending_items():
     return jsonify({"trending_items": results}), 200
 
 def create_transaction(user_name, item_id, purchase_quantity):
-    item = item_dao.get_item_by_id(item_id)  # Use DAO to find item
+    item = item_dao.get_by_id(item_id)  # Use DAO to find item
     if not item:
         return jsonify({'message': 'Item not found'}), 404
 

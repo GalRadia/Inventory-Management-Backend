@@ -10,6 +10,9 @@ class TransactionDAO:
         transaction_dict = transaction.to_dict()
         result = self.collection.insert_one(transaction_dict)
         return result.inserted_id
+    def get_by_id(self, transaction_id: str):
+        transaction_data = self.collection.find_one({"_id": transaction_id})
+        return Transaction.from_dict(transaction_data)
 
     def get_by_buyer(self, buyer: str):
         transactions = self.collection.find({"buyer": buyer})
@@ -39,6 +42,8 @@ class TransactionDAO:
         transaction_dict = transaction.to_dict()
         result = self.collection.insert_one(transaction_dict)
         return result.inserted_id
+    def remove_transaction(self, transaction_id):
+        self.collection.delete_one({"_id": transaction_id})
 
 # Example usage:
 # db = MongoClient()['your_database']
