@@ -1,23 +1,32 @@
-from mongoengine import Document, StringField, IntField,FloatField
+from bson import ObjectId
+import uuid
 
-class Item(Document):
-    name = StringField(required=True, unique=True)
-    price = FloatField(required=True,min_value=0)
-    quantity = IntField(required=True)
-    description = StringField()
-    # Specify the collection name
-    meta = {
-        'collection': 'Items'  # Replace with your desired collection name
-    }
+class Item:
+    def __init__(self, name, price, quantity, description=None, _id=None):
+        self.id = str(_id) if _id else None  # Convert ObjectId to string
+        self.name = name
+        self.price = price
+        self.quantity = quantity
+        self.description = description
 
-    def __str__(self):
-        return f"{self.name} - {self.quantity} items available at ${self.price} each"
-    def to_json(self):
+    def to_dict(self):
         return {
+            'id': self.id,
             'name': self.name,
             'price': self.price,
             'quantity': self.quantity,
             'description': self.description
         }
 
+    def __str__(self):
+        return f"{self.name} - {self.quantity} items available at ${self.price} each"
 
+    @staticmethod
+    def from_dict(data):
+        return Item(
+            name=data.get('name'),
+            price=data.get('price'),
+            quantity=data.get('quantity'),
+            description=data.get('description'),
+            _id=data.get('_id')  # Ensure the id is captured from MongoDB
+        )
