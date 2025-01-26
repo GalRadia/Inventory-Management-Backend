@@ -61,7 +61,7 @@ def search():
 @manager_required
 def insert_item():
     data = request.get_json()
-    item = Item.from_dict(data["Item"])  # Create Item object from JSON data
+    item = Item.from_dict(data)  # Create Item object from JSON data
     item_id = item_dao.create(item)  # Use DAO to insert item
     return jsonify({'message': 'Item inserted successfully', 'item_id': str(item_id)}), 201
 
@@ -91,7 +91,7 @@ def remove_item(item_id):
 @manager_required
 def purchase():
     data = request.get_json()
-    transaction = Transaction.from_dict(data["Transaction"])  # Create Transaction object from JSON data
+    transaction = Transaction.from_dict(data)  # Create Transaction object from JSON data
     transaction.timestamp = datetime.now(pytz.utc)
     transaction_dao.create_transaction(transaction)  # Use DAO to create transaction
     return jsonify({'message': 'Transaction completed successfully'}), 201
