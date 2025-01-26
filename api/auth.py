@@ -66,8 +66,7 @@ def manager_required(f):
 
     return decorated_function
 
-
-@auth_bp.route('/login', methods=['GET'])
+@auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
@@ -96,18 +95,15 @@ def login():
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-
-    username = data.get('username')
-    password = data.get('password')
-    role = data.get('role')
+    user = User.from_dict(data["user"])
 
     # Check if user already exists in the database
-    if user_dao.get_by_username(username):
+    if user_dao.get_by_username(user.username):
         return jsonify({'message': 'User already exists'}), 400
 
     # Hash the password and save the user to the database
-    hashed_password = generate_password_hash(password)
-    user = User(username=username, password=hashed_password, role=role)
+    hashed_password = generate_password_hash(user.password)
+    user = User(username=user.username, password=hashed_password, role=user.role)
     user_dao.create(user)
 
     return jsonify({'message': 'User registered successfully'}), 201

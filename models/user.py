@@ -2,7 +2,8 @@ import uuid
 
 
 class User:
-    def __init__(self, username, password, role):
+    def __init__(self, username, password, role,_id=None):
+        self.id = str(_id) if _id else None  # Convert ObjectId to string
         self.username = username
         self.password = password
         self.role = role
@@ -11,7 +12,8 @@ class User:
         return {
             'username': self.username,
             'password': self.password,
-            'role': self.role
+            'role': self.role,
+            'id': self.id,
         }
 
     def __str__(self):
@@ -23,5 +25,7 @@ class User:
         return User(
             username=data.get('username'),
             password=data.get('password'),
-            role=data.get('role')
+            role=data.get('role'),
+            _id=data.get('_id')  # Ensure the id is captured from MongoDB
+
         )
