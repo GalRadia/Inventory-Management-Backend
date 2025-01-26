@@ -95,7 +95,7 @@ def login():
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    user = User.from_dict(data["user"])
+    user = User.from_dict(data["User"])
 
     # Check if user already exists in the database
     if user_dao.get_by_username(user.username):
