@@ -110,7 +110,6 @@ def register():
 
 
 @auth_bp.route('/active', methods=['GET'])
-@manager_required
 def get_active_users():
     audits = audit_dao.get_all()
     users = []
@@ -163,3 +162,11 @@ def refresh_token():
     response = jsonify({'message': 'Token refreshed'})
     response.headers['Authorization'] = f'Bearer {token}'
     return response, 200
+
+@auth_bp.route('/audit/<username>', methods=['GET'])
+def get_audit():
+    username = request.args.get('username')
+    audit = audit_dao.get_by_username(username)
+    if not audit:
+        return jsonify({'message': 'Audit log not found'}), 404
+    return jsonify(audit.to_dict() ), 200
