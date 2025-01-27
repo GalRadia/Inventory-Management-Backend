@@ -86,11 +86,15 @@ def login():
         )
 
         # Log the audit
-        audit = Audit(username=username, timestamp=timestamp, role=user.role)
-        audit_dao.create(audit)
-        return jsonify({'token': token}), 200
-
+        audit = audit_dao.get_by_username(username)
+        if audit:
+            audit.update(timestamp=timestamp)
+        else:
+            audit = Audit(username=username, timestamp=timestamp, role=user.role)
+            audit_dao.create(audit)
+        return jsonify({'message': 'Login successful'}), 200, {'token': token}
     return jsonify({'message': 'Invalid credentials'}), 401
+
 
 
 @auth_bp.route('/register', methods=['POST'])

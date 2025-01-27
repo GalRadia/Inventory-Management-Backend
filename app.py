@@ -69,10 +69,10 @@ def require_token():
     try:
         # Decode the JWT token
         data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-
+        username = data['username']
         # Check if user exists in the database
-        users_collection = mongoDB_manager.MongoConnectionHolder.get_db()["users"]
-        current_user = users_collection.find_one({"username": data['username']})
+        users_collection = mongoDB_manager.MongoConnectionHolder.get_db()["Users"]
+        current_user = users_collection.find_one({"username": username})
 
         if not current_user:
             return jsonify({'message': 'User does not exist!'}), 404
