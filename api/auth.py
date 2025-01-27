@@ -152,23 +152,22 @@ def delete_user(username):
 
 @auth_bp.route('/refresh-token', methods=['PUT'])
 def refresh_token():
-    current_user = request.current_user
-    timestamp = datetime.now(pytz.utc) + timedelta(hours=1)
-
-    token = jwt.encode(
-        {'username': current_user.username, 'exp': timestamp, 'role': current_user.role},
-        SECRET_KEY,
-        algorithm='HS256'
-    )
-
-    # Update the audit record
-    audit = audit_dao.get_by_username(current_user.username)
-    if audit:
-        audit_dao.update(audit.id, Audit(username=current_user.username, timestamp=timestamp, role=current_user.role))
-
-    response = jsonify({'message': 'Token refreshed'})
-    response.headers['Authorization'] = f'Bearer {token}'
-    return response, 200
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+    try:
+        data = jwt.decode(token.split(" ")[1], SECRET_KEY, algorithms=['HS256'])
+        timestamp = datetime.now(pytz.utc) + timedelta(hours=1)
+        new_token = jwt.encode(
+            {'username': data['username'], 'exp': timestamp, 'role': data['role']},
+            SECRET_KEY,
+            algorithm='HS256'
+        )
+        audit = audit_dao.get_by_username(data['username'])
+        audit_dao.update(audit.id, Audit(username=data['username'], timestamp=timestamp, role=data['role']))
+        return jsonify({'message': 'Token refreshed successfully', 'token': new_token}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
 
 
 @auth_bp.route('/audit/exp', methods=['GET'])

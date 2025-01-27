@@ -41,7 +41,6 @@ def require_token():
     exempt_routes = [
         "/auth/login",
         "/auth/register",
-        "/auth/refresh-token",  # Add any routes that do not require token
         "/",
         "/favicon.ico",
         "/static/*",
