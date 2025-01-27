@@ -22,14 +22,14 @@ transaction_dao = TransactionDAO(db)
 @inventory_bp.route('/items', methods=['GET'])
 def get_items():
     items = item_dao.get_all_items()  # Use DAO to retrieve items
-    return jsonify([item.to_json() for item in items]), 200
+    return jsonify([item.to_dict() for item in items]), 200
 
 
 @inventory_bp.route('/items/<item_id>', methods=['GET'])
 def get_item_by_id(item_id):
     item = item_dao.get_by_id(item_id)  # Use DAO to find item by ID
     if item:
-        return jsonify(item.to_json()), 200
+        return jsonify(item.to_dict()), 200
     return jsonify({'message': 'Item not found'}), 404
 
 
@@ -45,7 +45,7 @@ def search():
         items = item_dao.search_items_by_name(name)
 
         # Convert the items to JSON format
-        response = [item.to_json() for item in items]
+        response = [item.to_dict() for item in items]
         return jsonify(response), 200
 
     except BadRequest as e:
@@ -103,7 +103,7 @@ def purchase():
 @manager_required
 def get_transactions(current_user):
     transactions = transaction_dao.get_transactions_by_user(current_user.username)  # Use DAO to get user transactions
-    return jsonify([transaction.to_json() for transaction in transactions]), 200
+    return jsonify([transaction.to_dict() for transaction in transactions]), 200
 
 
 @transaction_bp.route('/trending', methods=['GET'])
