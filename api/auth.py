@@ -92,7 +92,7 @@ def login():
         else:
             audit = Audit(username=username, timestamp=timestamp, role=user.role)
             audit_dao.create(audit)
-        return jsonify({'message': 'Login successful', 'token': token}), 200
+        return jsonify({'message': 'Login successful', 'token': token,'role':user.role}), 200
     return jsonify({'message': 'Invalid credentials'}), 401
 
 
@@ -148,6 +148,7 @@ def delete_user(username):
         user_dao.delete(username)
         return jsonify({'message': 'User deleted successfully'}), 200
     return jsonify({'message': 'User not found'}), 404
+
 
 
 @auth_bp.route('/refresh-token', methods=['PUT'])
