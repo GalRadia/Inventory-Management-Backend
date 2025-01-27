@@ -88,7 +88,7 @@ def login():
         # Log the audit
         audit = audit_dao.get_by_username(username)
         if audit:
-            audit.update(timestamp=timestamp)
+            audit_dao.update(audit.id, Audit(username=username, timestamp=timestamp, role=user.role))
         else:
             audit = Audit(username=username, timestamp=timestamp, role=user.role)
             audit_dao.create(audit)
