@@ -66,6 +66,7 @@ def manager_required(f):
 
     return decorated_function
 
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -134,6 +135,8 @@ def get_user(username):
     if user:
         return jsonify(user.to_dict()), 200
     return jsonify({'message': 'User not found'}), 404
+
+
 @auth_bp.route('/users/<username>', methods=['DELETE'])
 @manager_required
 def delete_user(username):
@@ -142,6 +145,7 @@ def delete_user(username):
         user_dao.delete(username)
         return jsonify({'message': 'User deleted successfully'}), 200
     return jsonify({'message': 'User not found'}), 404
+
 
 @auth_bp.route('/refresh-token', methods=['PUT'])
 def refresh_token():
@@ -163,10 +167,15 @@ def refresh_token():
     response.headers['Authorization'] = f'Bearer {token}'
     return response, 200
 
-@auth_bp.route('/audit/<username>', methods=['GET'])
+
+@auth_bp.route('/audit/exp', methods=['GET'])
 def get_audit():
-    username = request.args.get('username')
-    audit = audit_dao.get_by_username(username)
-    if not audit:
-        return jsonify({'message': 'Audit log not found'}), 404
-    return jsonify(audit.to_dict() ), 200
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'message': 'Token is missing'}), 403
+    try:
+        timestamp = jwt.decode(token.split(" ")[1], SECRET_KEY, algorithms=['HS256'])['exp']
+        if timestamp:
+            return jsonify({'exp': timestamp}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token has expired'}), 403
