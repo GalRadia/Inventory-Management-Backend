@@ -164,7 +164,7 @@ def refresh_token():
     # Update the audit record
     audit = audit_dao.get_by_username(current_user.username)
     if audit:
-        audit.update(timestamp=timestamp)
+        audit_dao.update(audit.id, Audit(username=current_user.username, timestamp=timestamp, role=current_user.role))
 
     response = jsonify({'message': 'Token refreshed'})
     response.headers['Authorization'] = f'Bearer {token}'
