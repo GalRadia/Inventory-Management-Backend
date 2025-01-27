@@ -12,7 +12,6 @@ class Audit:
 
     def to_dict(self):
         return {
-            'id': str(self.id),  # Convert the ObjectId to string if needed
             'username': self.username,
             'timestamp': self.timestamp,
             'role': self.role
