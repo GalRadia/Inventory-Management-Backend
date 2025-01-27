@@ -1,12 +1,15 @@
 import uuid
 from datetime import datetime
 
+import pytz
+
+
 class Audit:
     def __init__(self, username, role, timestamp=None,_id=None):
         self.id = str(_id) if _id else None  # Convert ObjectId to string
         self.username = username
         self.role = role
-        self.timestamp = timestamp or datetime.utcnow()
+        self.timestamp = timestamp or datetime.now(pytz.utc)
 
     def to_dict(self):
         return {

@@ -169,7 +169,7 @@ def refresh_token():
 
 
 @auth_bp.route('/audit/exp', methods=['GET'])
-def get_audit():
+def get_exp():
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'message': 'Token is missing'}), 403
