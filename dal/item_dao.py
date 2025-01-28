@@ -42,11 +42,12 @@ class ItemDAO:
     def remove_item(self, item_id):
         self.collection.delete_one({"_id": item_id})
 
-    def update_item_quantity(self, item_id, param):
+    def update_item_quantity(self, item_id, quantity_change):
         self.collection.update_one(
             {"_id": item_id},
-            {"$inc": param}
+            {"$inc": {"quantity": quantity_change}}  # Use "quantity" as the field name
         )
+
 
 # Example usage:
 # db = MongoClient()['your_database']
