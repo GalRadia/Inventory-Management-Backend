@@ -1,3 +1,5 @@
+from bson import ObjectId
+
 from models.item import Item
 
 class ItemDAO:
@@ -11,7 +13,7 @@ class ItemDAO:
         return result.inserted_id
 
     def get_by_id(self, item_id):
-        item_data = self.collection.find_one({"_id": item_id})
+        item_data = self.collection.find_one({"_id": ObjectId(item_id)})
         if item_data:
             return Item.from_dict(item_data)
         return None
@@ -35,7 +37,7 @@ class ItemDAO:
 
     def update_item(self, item_id, data):
         self.collection.update_one(
-            {"_id": item_id},
+            {"_id": ObjectId(item_id)},
             {"$set": data}
         )
 
@@ -43,10 +45,12 @@ class ItemDAO:
         self.collection.delete_one({"_id": item_id})
 
     def update_item_quantity(self, item_id, quantity_change):
+        print(f"Updating quantity of item {item_id} by {quantity_change}")
         self.collection.update_one(
-            {"_id": item_id},
+            {"_id": ObjectId(item_id)},
             {"$inc": {"quantity": quantity_change}}  # Use "quantity" as the field name
         )
+        print("Quantity updated successfully")
 
 
 # Example usage:

@@ -93,7 +93,11 @@ def purchase():
     transaction = Transaction.from_dict(data)  # Create Transaction object from JSON data
     transaction.timestamp = datetime.now(pytz.utc)
     transaction_dao.create_transaction(transaction)  # Use DAO to create transaction
+    item = item_dao.get_by_id(transaction.item_id)  # Use DAO to find item
+    print(f"Item: {item}")
     item_dao.update_item_quantity(transaction.item_id, -transaction.quantity)  # Update item quantity
+    item = item_dao.get_by_id(transaction.item_id)  # Use DAO to find item
+    print(f"Item after purchase: {item}")
     return jsonify({'message': 'Transaction completed successfully'}), 201
 
 

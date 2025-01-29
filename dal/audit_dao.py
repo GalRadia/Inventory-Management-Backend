@@ -1,3 +1,5 @@
+from bson import ObjectId
+
 from models.audit import Audit
 
 
@@ -15,7 +17,7 @@ class AuditDAO:
 
     def get_by_id(self, audit_id: str):
         # Find an audit log by its _id
-        audit_log = self.collection.find_one({"_id": audit_id})
+        audit_log = self.collection.find_one({"_id": ObjectId(audit_id)})
         return Audit.from_dict(audit_log)
 
     def get_all(self):
@@ -25,12 +27,12 @@ class AuditDAO:
 
     def delete(self, audit_id: str):
         # Delete an audit log by its _id
-        self.collection.delete_one({"_id": audit_id})
+        self.collection.delete_one({"_id": ObjectId(audit_id)})
 
     def update(self, audit_id: str, updated_audit: Audit):
         # Update an audit log by its _id
         self.collection.update_one(
-            {"_id": audit_id},
+            {"_id": ObjectId(audit_id)},
             {"$set": updated_audit.to_dict()}
         )
 

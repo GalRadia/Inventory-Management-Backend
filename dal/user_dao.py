@@ -1,3 +1,5 @@
+from bson import ObjectId
+
 from models.user import User
 
 
@@ -12,7 +14,7 @@ class UserDAO:
         return result.inserted_id
 
     def get_by_id(self, user_id):
-        user_data = self.collection.find_one({"_id": user_id})
+        user_data = self.collection.find_one({"_id": ObjectId(user_id)})
         return User.from_dict(user_data)
 
     def update(self, username: str, updated_user: User):

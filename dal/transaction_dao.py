@@ -1,3 +1,4 @@
+from bson import ObjectId
 from pymongo import MongoClient
 from models.transaction import Transaction
 
@@ -11,7 +12,7 @@ class TransactionDAO:
         result = self.collection.insert_one(transaction_dict)
         return result.inserted_id
     def get_by_id(self, transaction_id: str):
-        transaction_data = self.collection.find_one({"_id": transaction_id})
+        transaction_data = self.collection.find_one({"_id": ObjectId(transaction_id)})
         return Transaction.from_dict(transaction_data)
 
     def get_by_buyer(self, buyer: str):
@@ -19,17 +20,17 @@ class TransactionDAO:
         return [Transaction.from_dict(transaction) for transaction in transactions]
 
     def get_by_item(self, item_id: str):
-        transactions = self.collection.find({"item": item_id})
+        transactions = self.collection.find({"item": ObjectId(item_id)})
         return [Transaction.from_dict(transaction) for transaction in transactions]
 
     def update(self, transaction_id: str, updated_transaction: Transaction):
         self.collection.update_one(
-            {"_id": transaction_id},
+            {"_id": ObjectId(transaction_id)},
             {"$set": updated_transaction.to_dict()}
         )
 
     def delete(self, transaction_id: str):
-        self.collection.delete_one({"_id": transaction_id})
+        self.collection.delete_one({"_id": ObjectId(transaction_id)})
 
     def get_transactions_by_user(self, username):
         transactions = self.collection.find({"buyer": username})
@@ -43,7 +44,7 @@ class TransactionDAO:
         result = self.collection.insert_one(transaction_dict)
         return result.inserted_id
     def remove_transaction(self, transaction_id):
-        self.collection.delete_one({"_id": transaction_id})
+        self.collection.delete_one({"_id": ObjectId(transaction_id)})
 
 # Example usage:
 # db = MongoClient()['your_database']
