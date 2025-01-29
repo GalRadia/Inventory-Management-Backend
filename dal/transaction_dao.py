@@ -28,6 +28,9 @@ class TransactionDAO:
             {"_id": ObjectId(transaction_id)},
             {"$set": updated_transaction.to_dict()}
         )
+    def get_all(self):
+        transactions = self.collection.find()
+        return [Transaction.from_dict(transaction) for transaction in transactions]
 
     def delete(self, transaction_id: str):
         self.collection.delete_one({"_id": ObjectId(transaction_id)})

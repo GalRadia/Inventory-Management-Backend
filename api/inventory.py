@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
 
+import jwt
 import pytz
 from werkzeug.exceptions import BadRequest
 
-from api.auth import manager_required
+from api.auth import manager_required, SECRET_KEY
 from flask import Blueprint, request, jsonify
 from models.item import Item
 from models.transaction import Transaction
@@ -90,26 +91,35 @@ def remove_item(item_id):
 @transaction_bp.route('/purchase', methods=['POST'])
 def purchase():
     data = request.get_json()
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'error': 'Authorization token is missing'}), 401
+    username = jwt.decode(token.split(" ")[1], SECRET_KEY, algorithms=['HS256'])['username']
     transaction = Transaction.from_dict(data)  # Create Transaction object from JSON data
+    transaction.buyer = username
+    item= item_dao.get_by_id(transaction.item_id)
+    transaction.item_name = item.name
+    transaction.price = item.price
     transaction.timestamp = datetime.now(pytz.utc)
     transaction_dao.create_transaction(transaction)  # Use DAO to create transaction
-    item = item_dao.get_by_id(transaction.item_id)  # Use DAO to find item
-    print(f"Item: {item}")
     item_dao.update_item_quantity(transaction.item_id, -transaction.quantity)  # Update item quantity
-    item = item_dao.get_by_id(transaction.item_id)  # Use DAO to find item
-    print(f"Item after purchase: {item}")
     return jsonify({'message': 'Transaction completed successfully'}), 201
-
-
 
 
 @transaction_bp.route('/transactions', methods=['GET'])
 @manager_required
-def get_transactions(current_user):
-    transactions = transaction_dao.get_transactions_by_user(current_user.username)  # Use DAO to get user transactions
+def get_transactions():
+    transactions = transaction_dao.get_all()
     return jsonify([transaction.to_dict() for transaction in transactions]), 200
 
-
+@transaction_bp.route('/transactions/mine', methods=['GET'])
+def get_user_transactions():
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'error': 'Authorization token is missing'}), 401
+    username = jwt.decode(token.split(" ")[1], 'SECRET_KEY', algorithms=['HS256'])['username']
+    transactions = transaction_dao.get_transactions_by_user(username)
+    return jsonify([transaction.to_dict() for transaction in transactions]), 200
 @transaction_bp.route('/trending', methods=['GET'])
 def get_trending_items():
     try:
@@ -123,7 +133,7 @@ def get_trending_items():
         # Define the aggregation pipeline
         pipeline = [
             {"$match": {"timestamp": {"$gte": last_n_days}}},
-            {"$group": {"_id": "$item", "total_sales": {"$sum": "$quantity"}}},
+            {"$group": {"_id": "$item_id", "total_sales": {"$sum": "$quantity"}}},
             {"$sort": {"total_sales": -1}},
             {"$limit": limit}
         ]
@@ -149,5 +159,3 @@ def get_trending_items():
     except Exception as e:
         # Handle unexpected errors
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
-
-
