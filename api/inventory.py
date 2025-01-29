@@ -154,7 +154,7 @@ def get_trending_items():
                 })
 
         # Return the response as JSON
-        return jsonify({"trending_items": results}), 200
+        return jsonify( results), 200
 
     except Exception as e:
         # Handle unexpected errors
