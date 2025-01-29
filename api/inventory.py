@@ -117,7 +117,7 @@ def get_user_transactions():
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'error': 'Authorization token is missing'}), 401
-    username = jwt.decode(token.split(" ")[1], 'SECRET_KEY', algorithms=['HS256'])['username']
+    username = jwt.decode(token.split(" ")[1], SECRET_KEY, algorithms=['HS256'])['username']
     transactions = transaction_dao.get_transactions_by_user(username)
     return jsonify([transaction.to_dict() for transaction in transactions]), 200
 @transaction_bp.route('/trending', methods=['GET'])
