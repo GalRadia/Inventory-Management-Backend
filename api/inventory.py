@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import jwt
 import pytz
+from bson import ObjectId
 from werkzeug.exceptions import BadRequest
 
 from api.auth import manager_required, SECRET_KEY
@@ -71,9 +72,9 @@ def insert_item():
 @manager_required
 def update_item(item_id):
     data = request.get_json()
-    item = item_dao.get_by_id(item_id)  # Use DAO to find item
+    item = item_dao.get_by_id(ObjectId(item_id))  # Use DAO to find item
     if item:
-        item_dao.update_item(item_id, data)  # Use DAO to update item
+        item_dao.update_item(ObjectId(item_id), data)  # Use DAO to update item
         return jsonify({'message': 'Item updated successfully'}), 200
     return jsonify({'message': 'Item not found'}), 404
 
@@ -81,9 +82,9 @@ def update_item(item_id):
 @inventory_bp.route('/remove/<item_id>', methods=['DELETE'])
 @manager_required
 def remove_item(item_id):
-    item = item_dao.get_by_id(item_id)  # Use DAO to find item
+    item = item_dao.get_by_id(ObjectId(item_id))  # Use DAO to find item
     if item:
-        item_dao.remove_item(item_id)  # Use DAO to remove item
+        item_dao.remove_item(ObjectId(item_id))  # Use DAO to remove item
         return jsonify({'message': 'Item deleted successfully'}), 200
     return jsonify({'message': 'Item not found'}), 404
 
@@ -133,7 +134,11 @@ def get_trending_items():
         # Define the aggregation pipeline
         pipeline = [
             {"$match": {"timestamp": {"$gte": last_n_days}}},
-            {"$group": {"_id": "$item_id", "total_sales": {"$sum": "$quantity"}}},
+            {"$group": {
+                "_id": "$item_id",
+                "total_sales": {"$sum": "$quantity"},
+                "transaction_id": {"$first": "$_id"}  # Capture one transaction ID
+            }},
             {"$sort": {"total_sales": -1}},
             {"$limit": limit}
         ]
@@ -143,14 +148,14 @@ def get_trending_items():
 
         # Prepare the results
         results = []
-        for item in trending_items:
-            item_details = item_dao.get_by_id(item["_id"])  # Use DAO to fetch item details
-            if item_details:
+        for trend in trending_items:
+            transaction_details = transaction_dao.get_by_id(trend["transaction_id"])  # Use DAO to fetch item details
+            if transaction_details:
                 results.append({
-                    "item_id": str(item_details.id),
-                    "item_name": item_details.name,
-                    "total_sales": item["total_sales"],
-                    "total_revenue": item["total_sales"] * item_details.price
+                    "item_id": str(transaction_details.item_id),
+                    "item_name": transaction_details.item_name,
+                    "total_sales": trend["total_sales"],
+                    "total_revenue": trend["total_sales"] * (transaction_details.price/transaction_details.quantity)
                 })
 
         # Return the response as JSON
