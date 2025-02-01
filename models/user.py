@@ -13,7 +13,6 @@ class User:
             'username': self.username,
             'password': self.password,
             'role': self.role,
-            'id': self.id,
         }
 
     def __str__(self):
