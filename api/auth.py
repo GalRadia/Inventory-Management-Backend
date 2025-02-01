@@ -92,7 +92,7 @@ def login():
         else:
             audit = Audit(username=username, timestamp=timestamp, role=user.role)
             audit_dao.create(audit)
-        return jsonify({'message': 'Login successful', 'token': token,'role':user.role}), 200
+        return jsonify({'message': 'Login successful', 'token': token, 'role': user.role}), 200
     return jsonify({'message': 'Invalid credentials'}), 401
 
 
@@ -117,7 +117,11 @@ def register():
 def get_active_users():
     audits = audit_dao.get_all()
     users = []
+
     for audit in audits:
+    # Example: Making audit.timestamp timezone-aware
+        if audit.timestamp.tzinfo is None:  # Check if it's naive
+            audit.timestamp = audit.timestamp.replace(tzinfo=pytz.utc)
         if audit.timestamp > datetime.now(pytz.utc):
             user = user_dao.get_by_username(audit.username)
             if user:
@@ -148,7 +152,6 @@ def delete_user(username):
         user_dao.delete(username)
         return jsonify({'message': 'User deleted successfully'}), 200
     return jsonify({'message': 'User not found'}), 404
-
 
 
 @auth_bp.route('/refresh-token', methods=['PUT'])
