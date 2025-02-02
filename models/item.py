@@ -14,8 +14,7 @@ class Item:
             'name': self.name,
             'price': self.price,
             'quantity': self.quantity,
-            'description': self.description,
-            'id': self.id
+            'description': self.description
         }
 
     def __str__(self):
