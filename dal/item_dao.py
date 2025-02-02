@@ -9,6 +9,7 @@ class ItemDAO:
 
     def create(self, item: Item):
         item_dict = item.to_dict()
+        item_dict.pop('_id', None)  # Remove the _id field to let MongoDB generate it
         result = self.collection.insert_one(item_dict)
         return result.inserted_id
 

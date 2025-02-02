@@ -11,6 +11,7 @@ class Item:
 
     def to_dict(self):
         return {
+            '_id': self.id,
             'name': self.name,
             'price': self.price,
             'quantity': self.quantity,
